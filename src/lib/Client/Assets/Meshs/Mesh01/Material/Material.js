@@ -1,8 +1,8 @@
-import { MeshPhongMaterial } from 'three';
+import { MeshBasicMaterial } from 'three';
 
 export default class Material {
     constructor() {
-        this.material = new MeshPhongMaterial({color: 0x00ff00});
+        this.material = new MeshBasicMaterial({color: 0x00ff00});
     }
 
     getMaterial() {

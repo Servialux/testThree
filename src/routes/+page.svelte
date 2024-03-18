@@ -1,30 +1,45 @@
 <script>
 import { onMount } from 'svelte';
 
-import OrtoCam from '$lib/client/Engine/Cameras/OrthographicCamera';
-import Scene01 from '$lib/client/assets/Scenes/Scene01/Scene';
-import Renderer from '$lib/client/Engine/Render';
-import CubeMesh from '$lib/client/assets/Meshs/mesh01/CubeMesh';
+import Camera from '$lib/Client/Engine/Cameras/Camera';
+import Scene01 from '$lib/Client/Assets/Scenes/Scene01/Scene';
+import Renderer from '$lib/Client/Engine/Render';
+import CubeMesh from '$lib/Client/Assets/Meshs/Mesh01/CubeMesh';
+import Orbit from '$lib/Client/Control/Orbit';
+import { getCanvas } from '$lib/Client/Tools/Function'
+
 
 onMount(async () => {
-
-	let camera = new OrtoCam();
+	let control;
+	const canvas = getCanvas();
+	let camera = new Camera();
 	let scene = new Scene01();
 	
-	let cube = new CubeMesh();
+	let cube1 = new CubeMesh();
+	let cube2 = new CubeMesh();
 
-	camera = camera.getCamera();
+	camera = camera.getOrthographicCamera();
 	scene = scene.getScene();
-	cube = cube.getMesh();
-	scene.add(cube);
+	control = new Orbit(camera, canvas);
+	cube1 = cube1.getMesh();
+	cube2 = cube2.getMesh();
+
+	cube1.position.z = -5;
+	cube2.position.z = -20;
+	cube2.position.x = -5;
+	camera.position.z = 1;
+	scene.add(cube1);
+	scene.add(cube2);
 
 	let renderer = new Renderer(scene, camera);
 	function init()
 	{
-		
+		console.log("init");
+		control.update();
 		renderer.onUpdate((dt) => {
-			cube.rotation.x += 0.005;
-    		cube.rotation.y += 0.01;
+
+			cube1.rotation.x += 0.005;
+    		cube1.rotation.y += 0.01;
 		})
 		renderer.start();
 	}

@@ -1,5 +1,5 @@
 import { WebGLRenderer, Clock } from 'three'
-import { getCanvas } from '../tool/function'
+import { getCanvas } from '$lib/Client/Tools/Function.js'
 
 export default class Renderer extends WebGLRenderer {
   scene = null
@@ -15,7 +15,7 @@ export default class Renderer extends WebGLRenderer {
     this.scene = scene;
     this.camera = camera;
     this.cbLoop = this.loop.bind(this);
-    this.shadowMap.enabled = true;
+    // this.shadowMap.enabled = true;
   }
 
   loop() {
