@@ -1,53 +1,65 @@
 <script>
 import { onMount } from 'svelte';
-
+import { Color, Fog, RepeatWrapping, SRGBColorSpace } from 'three';
 import Camera from '$lib/Client/Engine/Cameras/Camera';
 import Scene01 from '$lib/Client/Assets/Scenes/Scene01/Scene';
 import Renderer from '$lib/Client/Engine/Render';
 import CubeMesh from '$lib/Client/Assets/Meshs/Mesh01/CubeMesh';
 import Orbit from '$lib/Client/Control/Orbit';
 import { getCanvas } from '$lib/Client/Tools/Function'
+import Grass from '$lib/Client/Assets/Meshs/Grass/Grass';
 
+function sceneConstruct(scene, items = [], fog = null, background = null) {
+  items.forEach(item => scene.add(item));
+  if (fog) scene.fog = fog;
+  if (background) scene.background = background;
+}
 
 onMount(async () => {
-	let control;
-	const canvas = getCanvas();
-	let camera = new Camera();
-	let scene = new Scene01();
+	let ground = new Grass();	
+	ground = ground.getMesh();
 	
-	let cube1 = new CubeMesh();
-	let cube2 = new CubeMesh();
+	ground.rotation.x = - Math.PI / 2;
+	ground.material.map.repeat.set( 64, 64 );
+	ground.material.map.wrapS = RepeatWrapping();
+	ground.material.map.wrapT = RepeatWrapping();
+	ground.material.map.colorSpace = SRGBColorSpace();
+	const canvas = getCanvas();
+	let camera = new Camera().getPerspectiveCamera();
+	const control = new Orbit(camera, canvas);
 
-	camera = camera.getOrthographicCamera();
-	scene = scene.getScene();
-	control = new Orbit(camera, canvas);
-	cube1 = cube1.getMesh();
-	cube2 = cube2.getMesh();
+	let scene = new Scene01().getScene();
+	const cubes = [new CubeMesh().getMesh(), new CubeMesh().getMesh()];
 
-	cube1.position.z = -5;
-	cube2.position.z = -20;
-	cube2.position.x = -5;
+	const background = new Color(0xffffff);
+	const fog = new Fog(0xffffff, 1000, 4000);
+
+
+	cubes[0].position.set(0, 0, -5);
+	cubes[1].position.set(-5, 0, -20);
+
 	camera.position.z = 1;
-	scene.add(cube1);
-	scene.add(cube2);
 
-	let renderer = new Renderer(scene, camera);
+	sceneConstruct(scene, cubes, fog, background);
+	const renderer = new Renderer(scene, camera);
+		
 	function init()
 	{
-		console.log("init");
 		control.update();
 		renderer.onUpdate((dt) => {
-
-			cube1.rotation.x += 0.005;
-    		cube1.rotation.y += 0.01;
+			cubes.forEach(cube => {
+				cube.rotation.x += 0.005;
+				cube.rotation.y += 0.01;
+			});
 		})
 		renderer.start();
 	}
 
+	//Start Canvas
 	init();
+
+
 });
-
-
 </script>
 <canvas>
 

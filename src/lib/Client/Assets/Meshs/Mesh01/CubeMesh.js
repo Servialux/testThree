@@ -1,6 +1,6 @@
 import { Mesh } from "three";
-import Cube from "./Geometry/Cube";
-import Material from "$lib/Client/Assets/Meshs/Mesh01/Material/Material";
+import Cube from "$lib/Client/Assets/Meshs/Components/Geometrys/Cube";
+import Material from "$lib/Client/Assets/Meshs/Components/Materials/Material";
 
 
 export default class CubeMesh 
