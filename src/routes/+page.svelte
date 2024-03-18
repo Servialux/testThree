@@ -76,11 +76,11 @@ onMount(async () => {
 	ground.material.map.wrapT = RepeatWrapping;
 	ground.material.map.colorSpace = SRGBColorSpace;
 
-	items[0].position.set(0, 0, -5);
-	items[1].position.set(-5, 0, -20);
+	items[0].position.set(0, 1, -5);
+	items[1].position.set(-5, 1, -20);
 	items[0].controls = controls;
 
-	camera.position.z = 1;
+	camera.position.z = 50;
 	items.push(ground);
 	sceneConstruct(scene, items, fog, background);
 	const renderer = new Renderer(scene, camera);
