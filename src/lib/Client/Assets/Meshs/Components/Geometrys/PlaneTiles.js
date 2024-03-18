@@ -1,7 +1,7 @@
 import { PlaneGeometry } from "three";
 
 export default class PlaneTiles {
-    constructor(width, height, widthSegments = null, heightSegments = null) {
+    constructor(width, height, widthSegments = 1, heightSegments = 1) {
         this.geometry = new PlaneGeometry(width, height, widthSegments, heightSegments);
     }
 

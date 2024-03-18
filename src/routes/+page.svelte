@@ -10,46 +10,93 @@ import { getCanvas } from '$lib/Client/Tools/Function'
 import Grass from '$lib/Client/Assets/Meshs/Grass/Grass';
 
 function sceneConstruct(scene, items = [], fog = null, background = null) {
-  items.forEach(item => scene.add(item));
-  if (fog) scene.fog = fog;
-  if (background) scene.background = background;
+	items.forEach(item => scene.add(item));
+	if (fog) scene.fog = fog;
+	if (background) scene.background = background;
 }
 
 onMount(async () => {
-	let ground = new Grass();	
-	ground = ground.getMesh();
+
+	const controls = {
+		moveForward: false,
+		moveBackward: false,
+		moveLeft: false,
+		moveRight: false
+	};
+	document.addEventListener( 'keydown', onKeyDown );
+	document.addEventListener( 'keyup', onKeyUp );			
 	
-	ground.rotation.x = - Math.PI / 2;
-	ground.material.map.repeat.set( 64, 64 );
-	ground.material.map.wrapS = RepeatWrapping();
-	ground.material.map.wrapT = RepeatWrapping();
-	ground.material.map.colorSpace = SRGBColorSpace();
+	function onKeyDown( event ) {
+		switch ( event.code ) {
+			case 'ArrowUp':
+			case 'KeyZ': controls.moveForward = true; break;
+
+			case 'ArrowDown':
+			case 'KeyS': controls.moveBackward = true; break;
+
+			case 'ArrowLeft':
+			case 'KeyQ': controls.moveLeft = true; break;
+
+			case 'ArrowRight':
+			case 'KeyD': controls.moveRight = true; break;
+		}
+	}
+
+	function onKeyUp( event ) {
+
+		switch ( event.code ) {
+			case 'ArrowUp':
+			case 'KeyZ': controls.moveForward = false; break;
+
+			case 'ArrowDown':
+			case 'KeyS': controls.moveBackward = false; break;
+
+			case 'ArrowLeft':
+			case 'KeyQ': controls.moveLeft = false; break;
+
+			case 'ArrowRight':
+			case 'KeyD': controls.moveRight = false; break;
+		}
+	}
+
 	const canvas = getCanvas();
 	let camera = new Camera().getPerspectiveCamera();
 	const control = new Orbit(camera, canvas);
 
 	let scene = new Scene01().getScene();
-	const cubes = [new CubeMesh().getMesh(), new CubeMesh().getMesh()];
+	const items = [new CubeMesh().getMesh(), new CubeMesh().getMesh()];
 
 	const background = new Color(0xffffff);
 	const fog = new Fog(0xffffff, 1000, 4000);
+	const ground = new Grass().getMesh();
+	
+	ground.rotation.x = - Math.PI / 2;
+	ground.material.map.repeat.set( 64, 64 );
+	ground.material.map.wrapS = RepeatWrapping;
+	ground.material.map.wrapT = RepeatWrapping;
+	ground.material.map.colorSpace = SRGBColorSpace;
 
-
-	cubes[0].position.set(0, 0, -5);
-	cubes[1].position.set(-5, 0, -20);
+	items[0].position.set(0, 0, -5);
+	items[1].position.set(-5, 0, -20);
+	items[0].controls = controls;
 
 	camera.position.z = 1;
-
-	sceneConstruct(scene, cubes, fog, background);
+	items.push(ground);
+	sceneConstruct(scene, items, fog, background);
 	const renderer = new Renderer(scene, camera);
 		
 	function init()
 	{
 		control.update();
 		renderer.onUpdate((dt) => {
-			cubes.forEach(cube => {
-				cube.rotation.x += 0.005;
-				cube.rotation.y += 0.01;
+			items.forEach(item => {
+				if (item.controls) {
+					if (item.controls.moveForward) item.position.z -= 0.1;
+					if (item.controls.moveBackward) item.position.z += 0.1;
+					if (item.controls.moveLeft) item.position.x -= 0.1;
+					if (item.controls.moveRight) item.position.x += 0.1;
+				}
+				
 			});
 		})
 		renderer.start();
