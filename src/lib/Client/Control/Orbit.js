@@ -7,8 +7,10 @@ export default class Orbit extends OrbitControls {
         this.dampingFactor = 0.05;
         this.enableZoom = true;
         this.enablePan = true;
-        this.minDistance = 1;
-        this.maxDistance = 500;
-        this.maxPolarAngle = Math.PI / 2;
+        this.enableRotate = true;
+        this.rotateSpeed = 0.8;
+        // this.minDistance = 300;
+        // this.maxDistance = 1000;
+       // this.maxAzimuthAngle = Math.PI / 8, Math.PI / 8;
     }
 }

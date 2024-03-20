@@ -1,6 +1,6 @@
 <script>
 import { onMount } from 'svelte';
-import { Color, Fog, RepeatWrapping, SRGBColorSpace } from 'three';
+import { Color, Fog, RepeatWrapping, SRGBColorSpace, AmbientLight } from 'three';
 import Camera from '$lib/Client/Engine/Cameras/Camera';
 import Scene01 from '$lib/Client/Assets/Scenes/Scene01/Scene';
 import Renderer from '$lib/Client/Engine/Render';
@@ -8,104 +8,133 @@ import CubeMesh from '$lib/Client/Assets/Meshs/Mesh01/CubeMesh';
 import Orbit from '$lib/Client/Control/Orbit';
 import { getCanvas } from '$lib/Client/Tools/Function'
 import Grass from '$lib/Client/Assets/Meshs/Grass/Grass';
+import Desert from '$lib/Client/Assets/Glb/world0.glb';
+import World from '$lib/Client/Entity/world';
+import Physic from '$lib/Client/Engine/Physic/Physic';
+import { loadWorld } from '$lib/Client/Tools/Loader';
+import Light from '$lib/Client/Engine/Lights/Light';
 
-function sceneConstruct(scene, items = [], fog = null, background = null) {
-	items.forEach(item => scene.add(item));
-	if (fog) scene.fog = fog;
+function sceneConstruct(scene, items = [],  fog = null, background = null, light = null,) {
+	items.forEach(item => 
+		scene.add(item)
+	);
+	//if (fog) scene.fog = fog;
 	if (background) scene.background = background;
+	if (light)  scene.add(light);
 }
 
-onMount(async () => {
 
-	const controls = {
+// CONTROL zzzz
+const controls = {
 		moveForward: false,
 		moveBackward: false,
 		moveLeft: false,
-		moveRight: false
-	};
-	document.addEventListener( 'keydown', onKeyDown );
-	document.addEventListener( 'keyup', onKeyUp );			
-	
-	function onKeyDown( event ) {
+		moveRight: false,
+		jump: false,
+		crouch: false,
+};
+document.addEventListener( 'keydown', onKeyDown );
+document.addEventListener( 'keyup', onKeyUp );				
+function onKeyDown( event ) {
 		switch ( event.code ) {
 			case 'ArrowUp':
-			case 'KeyZ': controls.moveForward = true; break;
+			case 'KeyW': controls.moveForward = true; break;
 
 			case 'ArrowDown':
 			case 'KeyS': controls.moveBackward = true; break;
 
 			case 'ArrowLeft':
-			case 'KeyQ': controls.moveLeft = true; break;
+			case 'KeyA': controls.moveLeft = true; break;
 
 			case 'ArrowRight':
 			case 'KeyD': controls.moveRight = true; break;
+
+			case 'jump':
+			case 'Space': controls.jump = true; break;
+
+			case 'crouch':
+			case 'ShiftLeft': controls.crouch = true; break;
 		}
 	}
 
 	function onKeyUp( event ) {
-
 		switch ( event.code ) {
 			case 'ArrowUp':
-			case 'KeyZ': controls.moveForward = false; break;
+			case 'KeyW': controls.moveForward = false; break;
 
 			case 'ArrowDown':
 			case 'KeyS': controls.moveBackward = false; break;
 
 			case 'ArrowLeft':
-			case 'KeyQ': controls.moveLeft = false; break;
+			case 'KeyA': controls.moveLeft = false; break;
 
 			case 'ArrowRight':
 			case 'KeyD': controls.moveRight = false; break;
+
+			case 'jump':
+			case 'Space': controls.jump = false; break;
+
+			case 'crouch':
+			case 'ShiftLeft': controls.crouch = false; break;
 		}
 	}
 
+onMount(async () => {
+	const moveSpeed = 0.1;
 	const canvas = getCanvas();
-	let camera = new Camera().getPerspectiveCamera();
+
+	const assetW = await loadWorld(Desert);
+	console.log('asset:',assetW);
+	const world = new World(assetW.visuals, assetW.colliders, Physic)
+	world.position.set(0, 0.2, 0);
+	console.log('world:', world, Physic);
+	const camera = new Camera().getPerspectiveCamera();
 	const control = new Orbit(camera, canvas);
-
-	let scene = new Scene01().getScene();
-	const items = [new CubeMesh().getMesh(), new CubeMesh().getMesh()];
-
-	const background = new Color(0xffffff);
+	const light = new Light()
+	console.log('light:',light);
+	const scene = new Scene01().getScene();
+	const items = [new CubeMesh().getMesh()];
+	const background = new Color(0x00000);
 	const fog = new Fog(0xffffff, 1000, 4000);
-	const ground = new Grass().getMesh();
 	
+	const ground = new Grass().getMesh();
 	ground.rotation.x = - Math.PI / 2;
 	ground.material.map.repeat.set( 64, 64 );
 	ground.material.map.wrapS = RepeatWrapping;
 	ground.material.map.wrapT = RepeatWrapping;
 	ground.material.map.colorSpace = SRGBColorSpace;
+	items.push(ground);
 
-	items[0].position.set(0, 1, -5);
-	items[1].position.set(-5, 1, -20);
+	items[0].position.set(0, 0.5, -1);
 	items[0].controls = controls;
 
-	camera.position.z = 50;
-	items.push(ground);
-	sceneConstruct(scene, items, fog, background);
+	camera.position.z = 10;
+	camera.position.y = 10;
+
+	console.log('items:',items);
+	scene.add(world);
+	sceneConstruct(scene, items, fog, background, light);
+	console.log('scene',scene);
 	const renderer = new Renderer(scene, camera);
 		
 	function init()
 	{
 		control.update();
 		renderer.onUpdate((dt) => {
+			Physic.step();
 			items.forEach(item => {
 				if (item.controls) {
-					if (item.controls.moveForward) item.position.z -= 0.1;
-					if (item.controls.moveBackward) item.position.z += 0.1;
-					if (item.controls.moveLeft) item.position.x -= 0.1;
-					if (item.controls.moveRight) item.position.x += 0.1;
+					if (item.controls.moveForward) item.position.z -= moveSpeed;
+					if (item.controls.moveBackward) item.position.z += moveSpeed;
+					if (item.controls.moveLeft) item.position.x -= moveSpeed;
+					if (item.controls.moveRight) item.position.x += moveSpeed;
 				}
 				
 			});
 		})
 		renderer.start();
 	}
-
-	//Start Canvas
 	init();
-
-
 });
 </script>
 <canvas>

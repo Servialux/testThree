@@ -2,8 +2,8 @@ import { BoxGeometry } from "three";
 
 
 export default class Cube {
-    constructor() {
-        this.geometry = new BoxGeometry(50, 50, 50);
+    constructor(cubeLenght = 1) {
+        this.geometry = new BoxGeometry(1, 1, 1);
     }
 
     getGeometry() {
